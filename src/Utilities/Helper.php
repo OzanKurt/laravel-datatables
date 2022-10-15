@@ -7,6 +7,7 @@ use DateTime;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Blade;
 use ReflectionFunction;
 
 class Helper
@@ -96,13 +97,8 @@ class Helper
             /** @var view-string $str */
             return view($str, $data)->render();
         }
-
-        ob_start() && extract($data, EXTR_SKIP);
-        eval('?>'.app('blade.compiler')->compileString($str));
-        $str = ob_get_contents();
-        ob_end_clean();
-
-        return $str;
+        
+        return Blade::render($str, $data);
     }
 
     /**
