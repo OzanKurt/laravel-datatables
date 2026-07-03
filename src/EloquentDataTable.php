@@ -3,6 +3,7 @@
 namespace Yajra\DataTables;
 
 use Illuminate\Contracts\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Contracts\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -169,7 +170,7 @@ class EloquentDataTable extends QueryDataTable
     /**
      * Check if a column is already prefixed by the current schema-qualified table.
      */
-    protected function isTableQualifiedColumn($query, string $column): bool
+    protected function isTableQualifiedColumn(QueryBuilder|EloquentBuilder $query, string $column): bool
     {
         $table = $this->getTablePrefix($query);
 
