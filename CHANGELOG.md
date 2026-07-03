@@ -1,3 +1,11 @@
+## [13.1.4](https://github.com/yajra/laravel-datatables/compare/v13.1.3...v13.1.4) (2026-07-03)
+
+
+### Bug Fixes
+
+* allow non-latin characters in column names ([8cdb6c8](https://github.com/yajra/laravel-datatables/commit/8cdb6c84f1f92d1f88f52eab74444127d9c30378))
+* **security:** pass HTTP request to API resources ([0a1aa50](https://github.com/yajra/laravel-datatables/commit/0a1aa50b3932158a32c8b2723827164cc7c40a47))
+
 ## [13.1.3](https://github.com/yajra/laravel-datatables/compare/v13.1.2...v13.1.3) (2026-06-30)
 
 
