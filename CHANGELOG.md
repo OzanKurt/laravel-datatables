@@ -1,3 +1,12 @@
+## [13.1.5](https://github.com/yajra/laravel-datatables/compare/v13.1.4...v13.1.5) (2026-07-03)
+
+
+### Bug Fixes
+
+* avoid double wildcarding column search keywords ([f6ef379](https://github.com/yajra/laravel-datatables/commit/f6ef3794118be4e56c68bf6c57bcb797e1e1b8ed))
+* handle schema-qualified eloquent table searches ([a0516eb](https://github.com/yajra/laravel-datatables/commit/a0516ebdf46570b3c5c6a278ca0ded890bc5d9a8))
+* type schema-qualified table search helper ([25622d2](https://github.com/yajra/laravel-datatables/commit/25622d28fc19c803357b593163843fcf39262fcf))
+
 ## [13.1.4](https://github.com/yajra/laravel-datatables/compare/v13.1.3...v13.1.4) (2026-07-03)
 
 
