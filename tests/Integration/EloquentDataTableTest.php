@@ -49,6 +49,28 @@ class EloquentDataTableTest extends TestCase
     }
 
     #[Test]
+    public function it_can_perform_column_search_on_model_with_schema_qualified_table()
+    {
+        $crawler = $this->call('GET', '/eloquent/schema-users', [
+            'columns' => [
+                [
+                    'data' => 'name',
+                    'name' => 'name',
+                    'searchable' => 'true',
+                    'orderable' => 'true',
+                    'search' => ['value' => 'Record-19'],
+                ],
+            ],
+        ]);
+
+        $crawler->assertJson([
+            'draw' => 0,
+            'recordsTotal' => 20,
+            'recordsFiltered' => 1,
+        ]);
+    }
+
+    #[Test]
     public function it_accepts_a_model_using_of_factory()
     {
         $dataTable = DataTables::of(User::query());
@@ -233,6 +255,15 @@ class EloquentDataTableTest extends TestCase
 
         $router = $this->app['router'];
         $router->get('/eloquent/users', fn (DataTables $datatables) => $datatables->eloquent(User::query())->toJson());
+
+        $router->get('/eloquent/schema-users', function (DataTables $datatables) {
+            $model = new class extends User
+            {
+                protected $table = 'main.users';
+            };
+
+            return $datatables->eloquent($model->newQuery())->toJson();
+        });
 
         $router->get('/eloquent/only', fn (DataTables $datatables) => $datatables->eloquent(Post::with('user'))
             ->only(['title', 'user.name'])
