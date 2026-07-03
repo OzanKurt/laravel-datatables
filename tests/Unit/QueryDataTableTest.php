@@ -260,6 +260,34 @@ class QueryDataTableTest extends TestCase
 
         $sql = $dataTable->getQuery()->toSql();
         $this->assertStringContainsString('name', strtolower($sql));
+        $this->assertSame(['%john%'], $dataTable->getQuery()->getBindings());
+    }
+
+    #[Test]
+    public function it_handles_starts_with_column_name_search()
+    {
+        config(['datatables.search.starts_with' => true]);
+
+        app('datatables.request')->merge([
+            'columns' => [
+                [
+                    'name' => '',
+                    'data' => 'name',
+                    'searchable' => 'true',
+                    'orderable' => 'false',
+                    'search' => ['value' => 'john', 'regex' => 'false'],
+                ],
+            ],
+        ]);
+
+        /** @var QueryDataTable $dataTable */
+        $dataTable = app('datatables')->of(
+            DB::table('users')->select('users.*')
+        );
+
+        $dataTable->columnSearch();
+
+        $this->assertSame(['john%'], $dataTable->getQuery()->getBindings());
     }
 
     #[Test]
