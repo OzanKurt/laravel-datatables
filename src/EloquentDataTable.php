@@ -82,6 +82,12 @@ class EloquentDataTable extends QueryDataTable
     protected function compileQuerySearch($query, string $column, string $keyword, string $boolean = 'or', bool $nested = false): void
     {
         if (substr_count($column, '.') > 1) {
+            if ($this->isTableQualifiedColumn($query, $column)) {
+                parent::compileQuerySearch($query, $column, $keyword, $boolean);
+
+                return;
+            }
+
             $parts = explode('.', $column);
             $firstRelation = array_shift($parts);
             $column = implode('.', $parts);
@@ -158,6 +164,18 @@ class EloquentDataTable extends QueryDataTable
         }
 
         return $isMorph;
+    }
+
+    /**
+     * Check if a column is already prefixed by the current schema-qualified table.
+     */
+    protected function isTableQualifiedColumn($query, string $column): bool
+    {
+        $table = $this->getTablePrefix($query);
+
+        return is_string($table)
+            && str_contains($table, '.')
+            && str_starts_with($column, $table.'.');
     }
 
     /**
