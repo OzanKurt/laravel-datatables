@@ -363,6 +363,22 @@ class QueryDataTableTest extends TestCase
     }
 
     #[Test]
+    public function it_ignores_search_panes_for_unregistered_columns()
+    {
+        $crawler = $this->call('GET', '/query/search-panes', [
+            'searchPanes' => [
+                'email' => ['foo@example.com'],
+            ],
+        ]);
+
+        $crawler->assertJson([
+            'draw' => 0,
+            'recordsTotal' => 20,
+            'recordsFiltered' => 20,
+        ]);
+    }
+
+    #[Test]
     public function it_allows_column_search_added_column_with_custom_filter_handler()
     {
         $crawler = $this->call('GET', '/query/blacklisted-filter', [
