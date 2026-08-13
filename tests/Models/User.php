@@ -18,6 +18,18 @@ class User extends Model
         return $this->hasOne(Heart::class);
     }
 
+    public function filteredHeart()
+    {
+        return $this->hasOne(Heart::class)->where('size', 'heart-2');
+    }
+
+    public function nestedFilteredHeart()
+    {
+        return $this->hasOne(Heart::class)->where(
+            fn ($query) => $query->where('size', 'heart-2')->orWhere('size', 'heart-3')
+        );
+    }
+
     public function roles()
     {
         return $this->belongsToMany(Role::class);
