@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as BaseQueryBuilder;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Exceptions\Exception;
 
 /**
@@ -92,7 +93,7 @@ class EloquentDataTable extends QueryDataTable
             }
 
             $parts = explode('.', $column);
-            $firstRelation = array_shift($parts);
+            $firstRelation = $this->resolveRelationName(array_shift($parts));
             $column = implode('.', $parts);
 
             if ($this->isMorphRelation($firstRelation)) {
@@ -114,7 +115,7 @@ class EloquentDataTable extends QueryDataTable
 
         $parts = explode('.', $column);
         $newColumn = array_pop($parts);
-        $relation = implode('.', $parts);
+        $relation = $this->resolveRelationName(implode('.', $parts));
 
         if (! $nested && $this->isNotEagerLoaded($relation)) {
             parent::compileQuerySearch($query, $column, $keyword, $boolean);
@@ -135,6 +136,24 @@ class EloquentDataTable extends QueryDataTable
                 parent::compileQuerySearch($query, $newColumn, $keyword, '');
             });
         }
+    }
+
+    /**
+     * Resolve the name of an eager loaded relation.
+     *
+     * Column names are usually written in snake case, e.g. "child_table.name",
+     * while the relation itself is defined in camel case. The camel case
+     * relation is therefore used when it is the eager loaded one.
+     */
+    protected function resolveRelationName(string $relation): string
+    {
+        if (! $relation || array_key_exists($relation, $this->query->getEagerLoads())) {
+            return $relation;
+        }
+
+        $camel = Str::camel($relation);
+
+        return array_key_exists($camel, $this->query->getEagerLoads()) ? $camel : $relation;
     }
 
     /**
@@ -190,7 +209,9 @@ class EloquentDataTable extends QueryDataTable
     {
         $parts = explode('.', $column);
         $columnName = array_pop($parts);
-        $relation = preg_replace('/\[.*?\]/', '', implode('.', $parts));
+        $relation = $this->resolveRelationName(
+            (string) preg_replace('/\[.*?\]/', '', implode('.', $parts))
+        );
 
         if ($this->isNotEagerLoaded($relation)) {
             return parent::resolveRelationColumn($column);
