@@ -86,6 +86,35 @@ class MaxLengthTest extends TestCase
     }
 
     #[Test]
+    public function it_can_ignore_the_maximum_on_the_data_table()
+    {
+        config(['datatables.max_length' => 5]);
+
+        $this->app['router']->get('/max-length-ignored', fn (DataTables $datatables) => $datatables
+            ->eloquent(User::query())
+            ->ignoreMaxLength()
+            ->toJson());
+
+        $response = $this->call('GET', '/max-length-ignored', ['start' => 0, 'length' => -1]);
+
+        $this->assertCount(20, $response->json()['data']);
+    }
+
+    #[Test]
+    public function it_can_ignore_the_maximum_on_the_request()
+    {
+        config(['datatables.max_length' => 5]);
+
+        // This is how an export gets every filtered record, as done by
+        // laravel-datatables-buttons before calling the ajax response.
+        app('datatables.request')->ignoreMaxLength();
+
+        $response = $this->call('GET', '/max-length', ['start' => 0, 'length' => -1]);
+
+        $this->assertCount(20, $response->json()['data']);
+    }
+
+    #[Test]
     public function it_caps_a_collection_data_table_as_well()
     {
         config(['datatables.max_length' => 5]);
