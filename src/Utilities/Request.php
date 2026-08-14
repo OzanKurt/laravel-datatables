@@ -281,9 +281,9 @@ class Request
      *
      * @return $this
      */
-    public function ignoreMaxLength(bool $ignore = true): static
+    public function ignoreMaxLength(): static
     {
-        $this->ignoreMaxLength = $ignore;
+        $this->ignoreMaxLength = true;
 
         return $this;
     }

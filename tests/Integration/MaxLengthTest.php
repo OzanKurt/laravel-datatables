@@ -116,6 +116,22 @@ class MaxLengthTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_keep_ignoring_the_maximum_on_the_next_request()
+    {
+        config(['datatables.max_length' => 5]);
+
+        app('datatables.request')->ignoreMaxLength();
+
+        // A long running worker, e.g. Octane, reuses the container between
+        // requests, so the flag must not survive into the next one.
+        $this->app->forgetScopedInstances();
+
+        $response = $this->call('GET', '/max-length', ['start' => 0, 'length' => -1]);
+
+        $this->assertCount(5, $response->json()['data']);
+    }
+
+    #[Test]
     public function it_resolves_the_same_request_instance_from_the_class_name()
     {
         // The request has to be shared, otherwise ignoreMaxLength() would be
