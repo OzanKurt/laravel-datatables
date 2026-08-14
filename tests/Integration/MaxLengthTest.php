@@ -7,6 +7,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Yajra\DataTables\DataTables;
 use Yajra\DataTables\Tests\Models\User;
 use Yajra\DataTables\Tests\TestCase;
+use Yajra\DataTables\Utilities\Request;
 
 class MaxLengthTest extends TestCase
 {
@@ -108,6 +109,26 @@ class MaxLengthTest extends TestCase
         // This is how an export gets every filtered record, as done by
         // laravel-datatables-buttons before calling the ajax response.
         app('datatables.request')->ignoreMaxLength();
+
+        $response = $this->call('GET', '/max-length', ['start' => 0, 'length' => -1]);
+
+        $this->assertCount(20, $response->json()['data']);
+    }
+
+    #[Test]
+    public function it_resolves_the_same_request_instance_from_the_class_name()
+    {
+        // The request has to be shared, otherwise ignoreMaxLength() would be
+        // set on another instance than the one used by the engines.
+        $this->assertSame(app('datatables.request'), app(Request::class));
+    }
+
+    #[Test]
+    public function it_can_ignore_the_maximum_through_the_request_class_name()
+    {
+        config(['datatables.max_length' => 5]);
+
+        app(Request::class)->ignoreMaxLength();
 
         $response = $this->call('GET', '/max-length', ['start' => 0, 'length' => -1]);
 

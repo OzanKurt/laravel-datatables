@@ -26,6 +26,7 @@ class DataTablesServiceProvider extends ServiceProvider
         $this->app->alias('datatables', DataTables::class);
         $this->app->singleton('datatables', fn () => new DataTables);
 
+        $this->app->alias('datatables.request', Request::class);
         $this->app->singleton('datatables.request', fn () => new Request);
 
         $this->app->singleton('datatables.config', DataTablesConfig::class);
