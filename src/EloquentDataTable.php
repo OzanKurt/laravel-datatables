@@ -4,6 +4,7 @@ namespace Yajra\DataTables;
 
 use Illuminate\Contracts\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Contracts\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Builder as BaseEloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -93,7 +94,7 @@ class EloquentDataTable extends QueryDataTable
             }
 
             $parts = explode('.', $column);
-            $firstRelation = $this->resolveRelationName(array_shift($parts));
+            $firstRelation = $this->resolveRelationName(array_shift($parts), $nested ? $query : null);
             $column = implode('.', $parts);
 
             if ($this->isMorphRelation($firstRelation)) {
@@ -115,7 +116,7 @@ class EloquentDataTable extends QueryDataTable
 
         $parts = explode('.', $column);
         $newColumn = array_pop($parts);
-        $relation = $this->resolveRelationName(implode('.', $parts));
+        $relation = $this->resolveRelationName(implode('.', $parts), $nested ? $query : null);
 
         if (! $nested && $this->isNotEagerLoaded($relation)) {
             parent::compileQuerySearch($query, $column, $keyword, $boolean);
@@ -144,16 +145,45 @@ class EloquentDataTable extends QueryDataTable
      * Column names are usually written in snake case, e.g. "child_table.name",
      * while the relation itself is defined in camel case. The camel case
      * relation is therefore used when it is the eager loaded one.
+     *
+     * Pass the query of a where has callback to resolve a nested relation. The
+     * eager loads of the root query are keyed by their full path, e.g.
+     * "user.childTable", so a nested name is resolved against the related
+     * model it belongs to instead.
+     *
+     * @param  QueryBuilder|EloquentBuilder|null  $query
      */
-    protected function resolveRelationName(string $relation): string
+    protected function resolveRelationName(string $relation, $query = null): string
     {
-        if (! $relation || array_key_exists($relation, $this->query->getEagerLoads())) {
+        if (! $relation) {
+            return $relation;
+        }
+
+        if ($query instanceof BaseEloquentBuilder) {
+            return $this->resolveRelationNameOf($query->getModel(), $relation);
+        }
+
+        if (array_key_exists($relation, $this->query->getEagerLoads())) {
             return $relation;
         }
 
         $camel = Str::camel($relation);
 
         return array_key_exists($camel, $this->query->getEagerLoads()) ? $camel : $relation;
+    }
+
+    /**
+     * Resolve the name of a relation against the model that declares it.
+     */
+    protected function resolveRelationNameOf(Model $model, string $relation): string
+    {
+        if (method_exists($model, $relation)) {
+            return $relation;
+        }
+
+        $camel = Str::camel($relation);
+
+        return method_exists($model, $camel) ? $camel : $relation;
     }
 
     /**
