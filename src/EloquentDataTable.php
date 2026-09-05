@@ -167,9 +167,52 @@ class EloquentDataTable extends QueryDataTable
             return $relation;
         }
 
-        $camel = Str::camel($relation);
+        $resolved = null;
+        $resolvedScore = -1;
 
-        return array_key_exists($camel, $this->query->getEagerLoads()) ? $camel : $relation;
+        foreach (array_keys($this->query->getEagerLoads()) as $eagerRelation) {
+            $score = $this->relationNameMatchScore($relation, (string) $eagerRelation);
+
+            if ($score !== null && $score > $resolvedScore) {
+                $resolved = (string) $eagerRelation;
+                $resolvedScore = $score;
+            }
+        }
+
+        return $resolved ?? $relation;
+    }
+
+    /**
+     * Score how well a relation matches an eager loaded one, segment by segment.
+     *
+     * Null means the two cannot be the same relation, otherwise the score is the
+     * number of segments that matched literally, so that an eager load spelled
+     * exactly like the column wins over one that only matches in camel case.
+     */
+    protected function relationNameMatchScore(string $relation, string $eagerRelation): ?int
+    {
+        $parts = explode('.', $relation);
+        $eagerParts = explode('.', $eagerRelation);
+
+        if (count($parts) !== count($eagerParts)) {
+            return null;
+        }
+
+        $score = 0;
+
+        foreach ($parts as $index => $part) {
+            if ($part === $eagerParts[$index]) {
+                $score++;
+
+                continue;
+            }
+
+            if (Str::camel($part) !== $eagerParts[$index]) {
+                return null;
+            }
+        }
+
+        return $score;
     }
 
     /**
@@ -177,13 +220,13 @@ class EloquentDataTable extends QueryDataTable
      */
     protected function resolveRelationNameOf(Model $model, string $relation): string
     {
-        if (method_exists($model, $relation)) {
+        if ($model->isRelation($relation)) {
             return $relation;
         }
 
         $camel = Str::camel($relation);
 
-        return method_exists($model, $camel) ? $camel : $relation;
+        return $model->isRelation($camel) ? $camel : $relation;
     }
 
     /**
