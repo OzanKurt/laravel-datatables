@@ -269,7 +269,7 @@ class EloquentDataTable extends QueryDataTable
         $parts = explode('.', $relation);
         $firstRelation = array_shift($parts);
 
-        return method_exists($model, $firstRelation) && $model->$firstRelation() instanceof MorphTo;
+        return $model->isRelation($firstRelation) && $model->$firstRelation() instanceof MorphTo;
     }
 
     /**
